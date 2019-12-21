@@ -8,9 +8,8 @@ class Gender:
 class Graph(object):
     def __init__(self) -> None:
         super().__init__()
-        self.actresses = None
-        self.actors    = None
-        self.movies    = None
+        self.actresses = set()
+        self.actors    = set()
 
     def parse_input(self) -> None:
         data = sys.stdin.read().splitlines()
@@ -52,7 +51,6 @@ class Graph(object):
                     actor.explored = True
                     if actor.match is None or self.match(actor.match): 
                         actor.match = actress
-                        actress.match = actor
                         return True
         return False
 
@@ -83,11 +81,11 @@ class Movie(object):
 class Person(object):
     def __init__(self, name: str, _id: int, gender: "Gender"):
         super().__init__()
-        self.name             = name
-        self.id               = _id
-        self.gender           = gender
-        self.costarred        = set()
-        self.match = None
+        self.name      = name
+        self.id        = _id
+        self.gender    = gender
+        self.costarred = set()
+        self.match     = None
     
     def __hash__(self) -> int:
         return self.id

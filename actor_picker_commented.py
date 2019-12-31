@@ -18,10 +18,14 @@ class Graph(object):
     is calculated within this class, by attempting to match
     all actors and actresses.
     """
+    __slots__ = ['actresses', 'actors', 'n', 'm', 'full']
     def __init__(self) -> None:
         super().__init__()
         self.actresses = set()
         self.actors    = set()
+        self.n         = 0
+        self.m         = 0
+        self.full      = True
 
     def parse_input(self) -> None:
         """
@@ -36,79 +40,86 @@ class Graph(object):
         self.m = int(m)
 
         # Construct a dict of Actresses
-        actress_dict = {}
+        self.actresses = {}
         for i in range(self.n):
             name = data.pop(0)
-            actress_dict[name] = Actress(name, i)
+            self.actresses[name] = Actress(name, i)
 
         # Construct a dict of Actors
-        actor_dict = {}
+        self.actors = {}
         for i in range(self.n):
             name = data.pop(0)
-            actor_dict[name] = Actor(name, i)
+            self.actors[name] = Actor(name, i)
 
         # For convenience, get a dict consisting of all people
-        people_dict = {**actress_dict, **actor_dict}
+        people_dict = {**self.actresses, **self.actors}
 
-        # Get all movies. For each person starring in the movie,
-        # update the person's costarred set with members they starred
-        # with in this movie, of the opposite gender.
+        # Convert the dict to a set, leaving only the Actress
+        # and Actor class instances
+        self.actresses = {*self.actresses.values()}
+        self.actors    = {*self.actors.values()}
+
+        # For all movies, update the set of costars of all 
+        # actresses. Also shrink the actor set.
         for _ in range(self.m):
             movie = Movie(data.pop(0))
             for _ in range(int(data.pop(0))):
                 movie.add_cast(people_dict[data.pop(0)])
             for person in movie.female_cast:
                 person.costarred |= movie.male_cast
-            for person in movie.male_cast:
-                person.costarred |= movie.female_cast
-
-        # Convert the dict to a set, leaving only the Actress
-        # and Actor class instances
-        self.actresses = {*actress_dict.values()}
-        self.actors    = {*actor_dict.values()}
+            self.actors -= movie.male_cast
         
-    def pick_winner(self):
+        # If the actor set is not empty, then there is an actor
+        # who was not in any movie. 
+        if self.actors:
+            self.full = False
+    
+    def pick_winner(self) -> str:
         """
         Return Mark as the winner if all actresses can be matched
         with an actor. Return Veronique otherwise.
         """
         return "Mark" if self.match_all() else "Veronique"
 
-    def match(self, actress):
+    def match(self, actress: "Actress", i: int) -> bool:
         """
         Attempt to match actress with an actor.
+        i is used to ensure that no infinite recursion occurs.
         """
         # Iterate over all costarring actors twice. On the first iteration,
         # consider only actors without a match. On the second iteration,
         # consider only actors with a match.
         for func in (lambda act: not act.match, lambda act: act.match):
             for actor in actress.costarred:
-                # Only consider actors that haven't been explored yet, for this actress.
-                if func(actor) and not actor.explored:
+                # Only consider actors that haven't been explored yet, for this i.
+                if func(actor) and actor.explored != i:
                     # Set this actor to be explored for potential recursive cases
-                    actor.explored = True
+                    actor.explored = i
                     # If the actor is available, or if the actress currently matched
                     # with this actor can match with someone else, then we update the match
                     # and return True, indicating that the match was successful
-                    if actor.match is None or self.match(actor.match): 
+                    if actor.match is None or self.match(actor.match, i):
                         actor.match = actress
                         return True
         # If no possible match was found, return False
         return False
 
-    def match_all(self):
+    def match_all(self) -> bool:
         """
         Try to match all actresses with an actor. 
         If this fails for any actress, return False indicating
         that not all actresses could be matched.
         Otherwise return True
         """
-        for actress in self.actresses:
-            # Set explored to False for all actors. 
-            # This allows `self.match` to avoid unwanted recursion.
-            for a in self.actors:
-                a.explored = False
-            if not self.match(actress):
+        # If there are actors who haven't played in any movie, return False,
+        # as this actor can not be matched.
+        if not self.full:
+            return False
+
+        # Iterate over sorted actresses
+        for i, actress in enumerate(sorted(self.actresses, key=lambda a: len(a.costarred))):
+            # Attempt to match the actress. Pass index i to ensure no infinite recursion
+            if not self.match(actress, i):
                 return False
         return True
 
@@ -117,10 +128,11 @@ class Movie(object):
     Movie stores a male and female cast, 
     as well as a name for this movie.
     """
+    __slots__ = ['name', 'male_cast', 'female_cast']
     def __init__(self, name: str) -> None:
         super().__init__()
-        self.name        = name
-        self.male_cast   = set()
+        self.name = name
+        self.male_cast = set()
         self.female_cast = set()
     
     def add_cast(self, person: "Person") -> None:
@@ -133,51 +145,57 @@ class Movie(object):
         else:
             self.female_cast.add(person)
     
-    def __repr__(self) -> str:
-        return f"<|{self.name}, starring: {', '.join(map(str, {**self.male_cast, **self.female_cast}))}|>"
-
 class Person(object):
     """
     Person stores a name, id and gender for a person.
-    It also stores a costarred set, which is a set of 
-    Persons of the opposite gender that played in movies
-    with this person.
-    There is also a match variable which stores to which
-    person this person is matched in a bipartite matching.
     """
+    __slots__ = ['name', 'id', 'gender']
     def __init__(self, name: str, _id: int, gender: "Gender"):
         super().__init__()
         self.name      = name
         self.id        = _id
         self.gender    = gender
-        self.costarred = set()
-        self.match     = None
-    
+
+    def __eq__(self, other):
+        """
+        Override default equals function using 
+        id for better performance with set unions
+        """
+        return self.id == other.id
+
     def __hash__(self) -> int:
         """
         Override default hashing function using 
-        id for better performance
+        id for better performance when hashing for sets
         """
         return self.id
-    
-    def __repr__(self) -> str: 
-        return f"<{self.name}, {self.gender}>"
 
 class Actress(Person):
     """
-    Subclasses Person with default gender Female
+    Subclass of Person
+    Actress stores a costarred set, which is a set of 
+    Actors that played in movies with this actress.
     """
+    __slots__ = ['costarred']
+
     def __init__(self, name: str, _id: int) -> None:
         super().__init__(name, _id, Gender.Female)
+        self.costarred = set()
 
 class Actor(Person):
     """
-    Subclasses Person with default gender Male
-    Also has explored variable used by Graph
+    Subclass of Person
+    Actor has a match variable which stores to which
+    actress this actor is matched in a bipartite matching.
+    It also stores an explored variable to prevent 
+    infinite recursion in Graph().match()
     """
+    __slots__ = ['explored', 'match']
+    
     def __init__(self, name: str, _id: int) -> None:
         super().__init__(name, _id, Gender.Male)
-        self.explored = False
+        self.explored = -1
+        self.match     = None
 
 if __name__ == "__main__":
     g = Graph()

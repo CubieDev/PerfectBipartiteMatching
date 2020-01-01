@@ -1,6 +1,4 @@
 
-import sys
-
 class Gender:
     Male = 0
     Female = 1
@@ -16,19 +14,20 @@ class Graph(object):
         self.full      = True
 
     def parse_input(self) -> None:
-        data = sys.stdin.read().splitlines()
-        n, m = data.pop(0).split()
+        import sys
+        data = sys.stdin.read().splitlines()[::-1]
+        n, m = data.pop().split()
         self.n = int(n)
         self.m = int(m)
 
         self.actresses = {}
         for i in range(self.n):
-            name = data.pop(0)
+            name = data.pop()
             self.actresses[name] = Actress(name, i)
 
         self.actors = {}
         for i in range(self.n):
-            name = data.pop(0)
+            name = data.pop()
             self.actors[name] = Actor(name, i)
 
         people_dict = {**self.actresses, **self.actors}
@@ -37,9 +36,9 @@ class Graph(object):
         self.actors    = {*self.actors.values()}
 
         for _ in range(self.m):
-            movie = Movie(data.pop(0))
-            for _ in range(int(data.pop(0))):
-                movie.add_cast(people_dict[data.pop(0)])
+            movie = Movie(data.pop())
+            for _ in range(int(data.pop())):
+                movie.add_cast(people_dict[data.pop()])
             for person in movie.female_cast:
                 person.costarred |= movie.male_cast
             self.actors -= movie.male_cast

@@ -33,22 +33,24 @@ class Graph(object):
         and Actor sets.
         """
         # Read all data, and split by lines
-        data = sys.stdin.read().splitlines()
+        import sys
+        data = sys.stdin.read().splitlines()[::-1]
+        n, m = data.pop().split()
         # Get the n and m from the data
-        n, m = data.pop(0).split()
+        n, m = data.pop().split()
         self.n = int(n)
         self.m = int(m)
 
         # Construct a dict of Actresses
         self.actresses = {}
         for i in range(self.n):
-            name = data.pop(0)
+            name = data.pop()
             self.actresses[name] = Actress(name, i)
 
         # Construct a dict of Actors
         self.actors = {}
         for i in range(self.n):
-            name = data.pop(0)
+            name = data.pop()
             self.actors[name] = Actor(name, i)
 
         # For convenience, get a dict consisting of all people
@@ -62,9 +64,9 @@ class Graph(object):
         # For all movies, update the set of costars of all 
         # actresses. Also shrink the actor set.
         for _ in range(self.m):
-            movie = Movie(data.pop(0))
-            for _ in range(int(data.pop(0))):
-                movie.add_cast(people_dict[data.pop(0)])
+            movie = Movie(data.pop())
+            for _ in range(int(data.pop())):
+                movie.add_cast(people_dict[data.pop()])
             for person in movie.female_cast:
                 person.costarred |= movie.male_cast
             self.actors -= movie.male_cast

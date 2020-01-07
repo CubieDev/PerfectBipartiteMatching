@@ -78,11 +78,11 @@ class Movie(object):
         self.female_cast = set()
     
     def add_cast(self, person: "Person") -> None:
-        if person.gender == Gender.Male:
-            self.male_cast.add(person)
-        else:
+        if person.gender:
             self.female_cast.add(person)
-    
+        else:
+            self.male_cast.add(person)
+
 class Person(object):
     __slots__ = ['name', 'id', 'gender']
     def __init__(self, name: str, _id: int, gender: "Gender"):

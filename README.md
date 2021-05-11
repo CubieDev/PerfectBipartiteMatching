@@ -13,6 +13,8 @@ We were tasked to find out which player has the winning strategy in the followin
 >
 >Veronique always starts.
 
+---
+
 ## Input
 Input to the program is given via **stdin**, in the following format:
 ```
@@ -40,6 +42,8 @@ Then *m* times the following:
 * *s* lines of cast members.
 All names are unique.
 
+---
+
 ## Output
 Output should be given via **stdout**. The program should either output `Mark` or `Veronique`, depending on who has the winning strategy.
 
@@ -47,6 +51,8 @@ Output should be given via **stdout**. The program should either output `Mark` o
 
 ### Contributing
 I am not taking contributions for this repository, as it is designed as an archive.
+
+---
 
 ### License
 This project is licensed under the MIT License - see the LICENSE.md file for details.

@@ -1,6 +1,6 @@
 # Perfect Bipartite Matching
 
-This repository holds a solution to a problem, which can be reconstructed as a perfect bipartite matching problem, which I was tasked to solve. Two versions of the code are provided - one with comments, and one without. The remainer of this README is an explanation of the Problem. The paper regarding the problem, algorithm, results, complexities and proofs is also provided as [paper.pdf](paper.pdf).
+This repository holds a solution to a problem, which can be reconstructed as a perfect bipartite matching problem, which I was tasked to solve. Two versions of the code are provided - one with comments, and one without. The remainer of this README is an explanation of the Problem. The paper regarding the problem, algorithm, results, complexities and proofs is also provided as [paper.pdf](https://github.com/tomaarsen/PerfectBipartiteMatching/blob/master/paper.pdf).
 
 ---
 
